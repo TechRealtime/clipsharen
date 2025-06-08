@@ -1,0 +1,2927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClipShare • Secure Clipboard Sync</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/Wv3nwM9F/local-share-icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --primary-dark: #5649c0;
+            --send-color: #00b894;
+            --send-light: rgba(0, 184, 148, 0.1);
+            --receive-color: #de2666;
+            --receive-light: rgba(222, 38, 102, 0.1);
+            --session-box-bg: rgba(108, 92, 231, 0.1);
+            --success: #00b894;
+            --danger: #ff7675;
+            --warning: #fdcb6e;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --bg-color: #f9f9f9;
+            --card-bg: #ffffff;
+            --border-color: #dfe6e9;
+            --footer-color: #b2bec3;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --glow: 0 0 15px rgba(108, 92, 231, 0.3);
+            --chat-bg: #ffffff;
+            --chat-header-bg: var(--primary);
+            --chat-header-text: #ffffff;
+            --chat-message-bg: #f1f1f1;
+            --chat-message-text: #333333;
+            --chat-input-bg: #ffffff;
+            --chat-icon-color: var(--primary);
+            --lite-input-bg: #e0e0e0;
+            --auto-sync-color: #00b894;
+            --auto-sync-light: rgba(0, 184, 148, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #7d6bff;
+            --primary-light: #5a4ac5;
+            --primary-dark: #9a86ff;
+            --send-color: #55efc4;
+            --send-light: rgba(85, 239, 196, 0.15);
+            --receive-color: #ff4d8d;
+            --receive-light: rgba(255, 77, 141, 0.15);
+            --session-box-bg: rgba(125, 107, 255, 0.15);
+            --success: #55efc4;
+            --danger: #ff7675;
+            --warning: #ffeaa7;
+            --text-primary: #f5f6fa;
+            --text-secondary: #dfe6e9;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --border-color: #2d3436;
+            --footer-color: #636e72;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --glow: 0 0 15px rgba(125, 107, 255, 0.4);
+            --chat-bg: #2d3436;
+            --chat-header-bg: var(--primary);
+            --chat-header-text: #ffffff;
+            --chat-message-bg: #3a4042;
+            --chat-message-text: #f5f6fa;
+            --chat-input-bg: #3a4042;
+            --chat-icon-color: var(--primary);
+            --lite-input-bg: #333333;
+            --auto-sync-color: #55efc4;
+            --auto-sync-light: rgba(85, 239, 196, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: var(--transition);
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            padding: 30px;
+            position: relative;
+            transition: var(--transition);
+            margin-bottom: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .session-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--session-box-bg);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        #sessionInfo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #sessionCode {
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+
+        #copySession {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        #copySession:hover {
+            background: rgba(108, 92, 231, 0.1);
+            transform: scale(1.1);
+        }
+
+        /* Live status dot styles */
+        .live-dot {
+            position: relative;
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .live-dot::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            width: 18px;
+            height: 18px;
+            background-color: rgba(108, 92, 231, 0.4);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0.5);
+            animation: pulseRing 5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        @keyframes pulseRing {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            2% {
+                opacity: 1;
+            }
+            10% {
+                transform: scale(1.2);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn.primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+        }
+
+        .btn.secondary {
+            background: var(--session-box-bg);
+            color: var(--primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(108, 92, 231, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn.send {
+            background: var(--send-color);
+            color: white;
+        }
+
+        .btn.send:hover {
+            background: #00a884;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3);
+        }
+
+        .btn.receive {
+            background: var(--receive-color);
+            color: white;
+        }
+
+        .btn.receive:hover {
+            background: #c71e5d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(222, 38, 102, 0.3);
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .action-card.send:hover {
+            box-shadow: 0 8px 25px rgba(0, 184, 148, 0.15);
+        }
+
+        .action-card.receive:hover {
+            box-shadow: 0 8px 25px rgba(222, 38, 102, 0.15);
+        }
+
+        .card-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.8rem;
+            transition: var(--transition);
+        }
+
+        .action-card:hover .card-icon {
+            transform: scale(1.1);
+        }
+
+        .card-icon.send {
+            background: var(--send-light);
+            color: var(--send-color);
+        }
+
+        .card-icon.receive {
+            background: var(--receive-light);
+            color: var(--receive-color);
+        }
+
+        .action-card h3 {
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .action-card p {
+            color: var(--text-secondary);
+            opacity: 0.9;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .status {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin: 12px 0;
+            min-height: 20px;
+        }
+
+        .clipboard-section {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .clipboard-section h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .content {
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        [data-theme="dark"] .content {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .notification {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            padding: 15px 25px;
+            background: var(--success);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            transform: translateX(200%);
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        .notification.warning {
+            background: var(--warning);
+            color: var(--text-primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 420px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            animation: slideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .modal p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 1rem;
+            text-align: center;
+            background: var(--card-bg);
+            color: var(--text-primary);
+            transition: var(--transition);
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 250px;
+            margin-top: 20px;
+            border-radius: 10px;
+            display: none;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .sync-time {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 12px;
+            font-weight: 400;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-light);
+            color: white;
+            transform: rotate(30deg);
+        }
+
+        .new-session-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 50px;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .new-session-btn:hover {
+            color: var(--primary);
+            background: rgba(108, 92, 231, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        /* Image copy button styles */
+        .image-copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .image-copy-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        /* Custom code styles */
+        .custom-code-container {
+            margin: 15px 0;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .custom-code-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .custom-code-toggle input {
+            margin: 0;
+        }
+        .custom-code-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+        .code-exists-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        /* Advanced options styles */
+        .advanced-options {
+            margin-top: 10px;
+            display: none;
+        }
+        .advanced-options label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        /* How it works section */
+        .how-it-works {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .how-it-works:hover {
+            color: var(--primary);
+        }
+        
+        /* Footer styles */
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--footer-color);
+            font-size: 0.85rem;
+        }
+
+        /* Updated Chat Widget Styles */
+        .chat-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            max-width: 400px;
+        }
+
+        /* Modern chat icon */
+        .chat-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            will-change: transform;
+        }
+
+        .chat-icon:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .chat-icon .unread-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .chat-container {
+            display: none;
+            width: 350px;
+            height: 450px;
+            background: var(--chat-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            transform: translateY(20px);
+            opacity: 0;
+            will-change: transform, opacity;
+        }
+
+        .chat-container.show {
+            display: flex;
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .chat-container.expanded {
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            max-height: none;
+            border-radius: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+        }
+
+        .chat-header {
+            background: var(--chat-header-bg);
+            color: var(--chat-header-text);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .chat-header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-header-btn {
+            background: transparent;
+            border: none;
+            color: var(--chat-header-text);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chat-header-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-word;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+            will-change: transform;
+        }
+
+        .chat-message.sent {
+            align-self: flex-end;
+            background: var(--primary);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .chat-message.received {
+            align-self: flex-start;
+            background: var(--chat-message-bg);
+            color: var(--chat-message-text);
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        .message-sender {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .message-time {
+            font-style: italic;
+        }
+
+        .message-status {
+            margin-left: 5px;
+        }
+
+        .message-delete {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .message-copy {
+            position: absolute;
+            top: -8px;
+            right: 25px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chat-message:hover .message-delete,
+        .chat-message:hover .message-copy {
+            display: flex;
+        }
+
+        .chat-input-container {
+            padding: 15px;
+            border-top: 1px solid var(--border-color);
+            background: var(--chat-bg);
+            position: relative;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            background: var(--chat-input-bg);
+            color: var(--text-primary);
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: none;
+            -webkit-appearance: none;
+        }
+
+        .chat-input:focus {
+            box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+        }
+
+        .chat-input-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .chat-send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chat-send-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .chat-extra-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-action-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chat-action-btn:hover {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .typing-indicator {
+            font-size: 12px;
+            color: var(--text-secondary);
+            padding-left: 15px;
+            height: 18px;
+            font-style: italic;
+        }
+
+        .username-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .username-modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            animation: slideUp 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .username-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 15px 0;
+            background: var(--card-bg);
+            color: var(--text-primary);
+        }
+
+        .username-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .close-modal-btn:hover {
+            color: var(--danger);
+        }
+
+        /* Emoji Picker Styles */
+        .emoji-picker-container {
+            position: absolute;
+            bottom: 70px;
+            right: 15px;
+            width: 350px;
+            height: 400px;
+            z-index: 1001;
+            display: none;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+        }
+
+        .emoji-picker-container.show {
+            display: block;
+        }
+
+        /* Confirmation Modal Styles */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 4000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .confirmation-content {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .confirmation-message {
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .confirmation-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .confirm-btn {
+            background: var(--danger);
+            color: white;
+        }
+
+        .cancel-btn {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        /* Admin Password Modal */
+        .admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        /* Lite Mode Styles */
+        .lite-mode .chat-input {
+            background: var(--lite-input-bg);
+        }
+
+        /* Auto-Sync Toggle Styles */
+        .auto-sync-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--auto-sync-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-label i {
+            color: var(--auto-sync-color);
+            font-size: 1.2rem;
+        }
+
+        .sync-status {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--auto-sync-color);
+            margin-top: 5px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .sync-status i {
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .sync-status.active {
+            color: var(--auto-sync-color);
+        }
+
+        .sync-status.inactive {
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .action-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .session-box {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            #sessionInfo {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .theme-toggle {
+                top: 20px;
+                right: 20px;
+                width: 36px;
+                height: 36px;
+            }
+            
+            .new-session-btn {
+                position: static;
+                margin: 0 auto 15px;
+                display: inline-flex;
+                justify-content: center;
+            }
+            
+            .modal-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+            }
+
+            .chat-widget {
+                bottom: 20px;
+                right: 20px;
+            }
+
+            .chat-container {
+                width: 300px;
+                height: 400px;
+            }
+
+            .chat-container.expanded {
+                width: 100%;
+                height: 100%;
+            }
+
+            .emoji-picker-container {
+                width: 280px;
+                height: 350px;
+                right: 10px;
+                bottom: 60px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.6rem;
+            }
+            
+            .action-card {
+                padding: 20px;
+            }
+            
+            .card-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+            
+            .clipboard-section {
+                padding: 20px;
+            }
+
+            .chat-widget {
+                bottom: 15px;
+                right: 15px;
+            }
+
+            .chat-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .chat-container {
+                width: 280px;
+                height: 380px;
+            }
+
+            .emoji-picker-container {
+                width: 260px;
+                height: 320px;
+            }
+
+            .auto-sync-toggle {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="fade-in-up" style="animation-delay: 0.1s;">
+            <button class="new-session-btn" id="newSessionBtn">
+                <i class="fas fa-plus-circle"></i> New
+            </button>
+            <h1><i class="fas fa-paperclip"></i> ClipShare</h1>
+            <p class="subtitle">Secure clipboard sync with end-to-end encryption</p>
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+
+        <div class="session-box fade-in-up" style="animation-delay: 0.2s;">
+            <div id="sessionInfo">
+                <span><span class="live-dot"></span>Your Session Code: <strong id="sessionCode">--------</strong></span>
+                <button id="copySession" title="Copy to clipboard"><i class="far fa-copy"></i></button>
+            </div>
+            <button id="haveCodeBtn" class="btn secondary">
+                <i class="fas fa-sign-in-alt"></i> Join Session
+            </button>
+        </div>
+
+        <!-- Auto-Sync Toggle -->
+        <div class="auto-sync-toggle fade-in-up" style="animation-delay: 0.25s;">
+            <label class="toggle-label">
+                <i class="fas fa-sync-alt"></i> Auto-Sync
+            </label>
+            <label class="toggle-switch">
+                <input type="checkbox" id="autoSyncToggle">
+                <span class="toggle-slider"></span>
+            </label>
+        </div>
+        <div class="sync-status inactive" id="syncStatus">
+            <i class="fas fa-circle-notch"></i> Auto-sync is off
+        </div>
+
+        <div class="action-grid">
+            <div class="action-card send fade-in-up" style="animation-delay: 0.3s;" id="sendCard">
+                <div class="card-icon send"><i class="fas fa-paper-plane"></i></div>
+                <h3>Send Clip</h3>
+                <p>Copy content to clipboard then click to send</p>
+                <button class="btn send" id="sendClip">
+                    <i class="fas fa-upload"></i> Send Now
+                </button>
+                <div class="sync-time" id="lastSentTime"></div>
+            </div>
+
+            <div class="action-card receive fade-in-up" style="animation-delay: 0.4s;" id="receiveCard">
+                <div class="card-icon receive"><i class="fas fa-download"></i></div>
+                <h3>Receive Clip</h3>
+                <p>Click to check for new clipboard content</p>
+                <button class="btn receive" id="receiveClipBtn">
+                    <i class="fas fa-sync-alt"></i> Check Now
+                </button>
+                <div class="status" id="receiveStatus">Waiting for content...</div>
+                <div class="sync-time" id="lastReceivedTime"></div>
+            </div>
+        </div>
+
+        <div class="clipboard-section fade-in-up" style="animation-delay: 0.5s;" id="sentPreview">
+            <h3><i class="fas fa-paper-plane"></i> Last Sent Content</h3>
+            <div class="content" id="sentContent">No content sent yet. Copy something to clipboard and click Send.</div>
+            <img id="sentImagePreview" class="image-preview">
+            <div class="sync-time" id="lastSentContentTime"></div>
+        </div>
+
+        <div class="clipboard-section fade-in-up" style="animation-delay: 0.6s;" id="clipPreview">
+            <button class="image-copy-btn" id="imageCopyBtn" title="Copy image to clipboard">
+                <i class="far fa-copy"></i>
+            </button>
+            <h3><i class="fas fa-clipboard"></i> Last Received Content</h3>
+            <div class="content" id="clipContent">No content received yet. Join a session and check for updates.</div>
+            <img id="imagePreview" class="image-preview">
+            <div class="sync-time" id="lastReceivedContentTime"></div>
+        </div>
+        
+        <div class="how-it-works" id="howItWorksBtn">
+            <i class="fas fa-question-circle"></i> How it works?
+        </div>
+    </div>
+    
+    <div class="footer">
+        &copy; 2025 ClipShare. All rights reserved.
+    </div>
+
+    <!-- Chat Widget -->
+    <div class="chat-widget">
+        <div class="chat-icon" id="chatToggle">
+            <i class="fas fa-comment-alt"></i>
+            <span class="unread-count" id="unreadCount" style="display: none;">0</span>
+        </div>
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-header">
+                <span id="chatHeaderTitle">ClipShare Chat</span>
+                <div class="chat-header-actions">
+                    <button class="chat-header-btn" id="expandChatBtn" title="Expand">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    <button class="chat-header-btn" id="minimizeChatBtn" title="Minimize" style="display: none;">
+                        <i class="fas fa-compress"></i>
+                    </button>
+                    <button class="chat-header-btn" id="closeChatBtn" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="typing-indicator" id="typingIndicator"></div>
+            <div class="chat-input-container">
+                <textarea class="chat-input" id="chatInput" placeholder="Type a message..." rows="1"></textarea>
+                <div class="chat-input-actions">
+                    <div class="chat-extra-actions">
+                        <button class="chat-action-btn" id="emojiToggleBtn" title="Emoji">
+                            <i class="far fa-smile"></i>
+                        </button>
+                        <button class="chat-action-btn" id="liteModeBtn" title="Toggle Lite Mode">
+                            <i class="fas fa-adjust"></i>
+                        </button>
+                    </div>
+                    <button class="chat-send-btn" id="chatSendBtn">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="emoji-picker-container" id="emojiPickerContainer">
+            <emoji-picker></emoji-picker>
+        </div>
+    </div>
+
+    <!-- Username Modal -->
+    <div class="username-modal" id="usernameModal">
+        <div class="username-modal-content">
+            <button class="close-modal-btn" id="closeUsernameModal">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3><i class="fas fa-user-edit"></i> Choose a Username</h3>
+            <p>Enter a username to use in the chat. This will be visible to other participants.</p>
+            <input type="text" id="usernameInput" class="username-input" placeholder="Your username" maxlength="20">
+            <div class="modal-actions">
+                <button class="btn primary" id="saveUsernameBtn">
+                    <i class="fas fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="codeModal">
+        <div class="modal-content">
+            <h3><i class="fas fa-sign-in-alt"></i> Join Existing Session</h3>
+            <p>Enter the session code to connect</p>
+            <input type="text" id="sessionCodeInput" class="modal-input" placeholder="Enter session code">
+            <div class="modal-actions">
+                <button class="btn primary" id="joinSessionBtn">
+                    <i class="fas fa-link"></i> Connect
+                </button>
+                <button class="btn secondary" id="cancelModalBtn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="newSessionModal">
+        <div class="modal-content">
+            <h3><i class="fas fa-exclamation-triangle"></i> Start New Session?</h3>
+            <p>The previous session data will be permanently deleted from the server. Make sure all participants have saved important information.</p>
+            
+            <div class="custom-code-toggle" id="customCodeToggle">
+                <input type="checkbox" id="useCustomCode">
+                <label for="useCustomCode">Create Own Code!</label>
+            </div>
+            
+            <div class="custom-code-container" id="customCodeContainer">
+                <input type="text" id="customCodeInput" class="custom-code-input" 
+                       placeholder="Enter 8-digit code" maxlength="8" pattern="\d{8}">
+                
+                <div class="advanced-options" id="advancedOptions">
+                    <label>
+                        <input type="checkbox" id="includeSymbols"> Include letters and symbols
+                    </label>
+                </div>
+                
+                <div class="code-exists-error" id="codeExistsError">
+                    Session already exists! Please join instead.
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="btn primary" id="confirmNewSessionBtn">
+                    <i class="fas fa-check"></i> Confirm
+                </button>
+                <button class="btn secondary" id="cancelNewSessionBtn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal" id="howItWorksModal">
+        <div class="modal-content">
+            <h3><i class="fas fa-question-circle"></i> How ClipShare Works</h3>
+            
+            <h4 style="margin-top: 15px; color: var(--primary);">Sending Content</h4>
+            <ol style="margin-bottom: 15px; padding-left: 20px;">
+                <li>Copy any text or image to your clipboard</li>
+                <li>Click the "Send Now" button</li>
+                <li>Your content will be securely sent to all connected devices</li>
+            </ol>
+            
+            <h4 style="margin-top: 15px; color: var(--primary);">Receiving Content</h4>
+            <ol style="margin-bottom: 15px; padding-left: 20px;">
+                <li>Join a session using the same session code</li>
+                <li>Click "Check Now" to receive new content</li>
+                <li>Received content will be automatically copied to your clipboard</li>
+            </ol>
+            
+            <h4 style="margin-top: 15px; color: var(--primary);">Features</h4>
+            <ul style="margin-bottom: 20px; padding-left: 20px;">
+                <li>End-to-end encrypted transfers</li>
+                <li>Supports both text and images</li>
+                <li>Works across different devices and platforms</li>
+                <li>Session expires after 24 hours of inactivity</li>
+            </ul>
+            
+            <button class="btn primary" id="closeHowItWorks" style="width: 100%;">
+                <i class="fas fa-check"></i> Got it!
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="confirmation-content">
+            <div class="confirmation-message" id="confirmationMessage">Are you sure you want to delete this message?</div>
+            <div class="confirmation-buttons">
+                <button class="confirmation-btn confirm-btn" id="confirmDeleteBtn">Delete</button>
+                <button class="confirmation-btn cancel-btn" id="cancelDeleteBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Password Modal -->
+    <div class="admin-modal" id="adminModal">
+        <div class="modal-content">
+            <h3><i class="fas fa-lock"></i> Admin Authentication</h3>
+            <p>Enter admin password to delete this message</p>
+            <input type="password" id="adminPasswordInput" class="admin-input" placeholder="Enter admin password">
+            <div class="modal-actions">
+                <button class="btn primary" id="confirmAdminBtn">
+                    <i class="fas fa-check"></i> Confirm
+                </button>
+                <button class="btn secondary" id="cancelAdminBtn">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
+
+    <script>
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAIRYYzJ7ezIIJgF4qRtpV3jaQm4h-0ro",
+            authDomain: "clipshare-a5129.firebaseapp.com",
+            databaseURL: "https://clipshare-a5129-default-rtdb.firebaseio.com",
+            projectId: "clipshare-a5129",
+            storageBucket: "clipshare-a5129.appspot.com",
+            messagingSenderId: "907720983668",
+            appId: "1:907720983668:web:ce2b59176fb20062ac7d21"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+
+        // Session Management
+        let currentSessionId = null;
+        let lastClipData = null;
+        let lastSentData = null;
+        let isDarkMode = false;
+        let chatUsername = localStorage.getItem('clipShareChatUsername');
+        let unreadMessages = 0;
+        let isChatOpen = false;
+        let chatMessagesRef = null;
+        let chatMessagesListener = null;
+        let typingTimeout = null;
+        let isTyping = false;
+        let isLiteMode = localStorage.getItem('clipShareLiteMode') === 'true';
+        let pendingMessageId = null;
+        const adminPasswords = ["62332556", "55255525"];
+        
+        // Auto-Sync Variables
+        let isAutoSyncEnabled = localStorage.getItem('clipShareAutoSync') === 'true';
+        let clipboardListener = null;
+        let lastClipboardCheck = 0;
+        let lastClipboardContent = '';
+        let lastClipboardImage = null;
+        let syncListener = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('clipShareTheme');
+            if (savedTheme === 'dark') {
+                enableDarkMode();
+            }
+            
+            // Initialize session without automatically checking clipboard
+            auth.signInAnonymously().then(() => {
+                checkExistingSession();
+            });
+
+            // Initialize chat listeners (but don't load messages yet)
+            setupChatListeners();
+
+            // Apply lite mode if enabled
+            if (isLiteMode) {
+                document.getElementById('chatContainer').classList.add('lite-mode');
+            }
+            
+            // Set up auto-sync toggle
+            setupAutoSync();
+
+            // Check if we have a username
+            if (!chatUsername) {
+                showUsernameModal();
+            } else {
+                initChat();
+            }
+        });
+
+        // Theme Toggle
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+        function toggleTheme() {
+            if (isDarkMode) {
+                disableDarkMode();
+            } else {
+                enableDarkMode();
+            }
+        }
+
+        function enableDarkMode() {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.getElementById('themeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+            isDarkMode = true;
+            localStorage.setItem('clipShareTheme', 'dark');
+        }
+
+        function disableDarkMode() {
+            document.documentElement.removeAttribute('data-theme');
+            document.getElementById('themeToggle').innerHTML = '<i class="fas fa-moon"></i>';
+            isDarkMode = false;
+            localStorage.setItem('clipShareTheme', 'light');
+        }
+
+        // Generate random 8-digit code
+        function generateSessionCode() {
+            let code = '';
+            for (let i = 0; i < 8; i++) {
+                code += Math.floor(Math.random() * 10);
+            }
+            return code;
+        }
+
+        // Generate random code with letters and symbols
+        function generateComplexCode(length = 16) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+            let code = '';
+            for (let i = 0; i < length; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // Create new session
+        function createNewSession() {
+            currentSessionId = generateSessionCode();
+            localStorage.setItem('clipShareSession', currentSessionId);
+            
+            db.ref(`sessions/${currentSessionId}`).set({
+                expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+                created: firebase.database.ServerValue.TIMESTAMP,
+                lastAccessed: firebase.database.ServerValue.TIMESTAMP
+            });
+
+            updateUI();
+            showNotification("New session created! Code: " + currentSessionId);
+            
+            // Setup auto-sync if enabled
+            if (isAutoSyncEnabled) {
+                setupAutoSyncListener();
+            }
+        }
+
+        // Join existing session
+        function joinSession(code) {
+            if (!code || code.length < 8) {
+                showNotification("Session code must be at least 8 characters", "error");
+                return;
+            }
+
+            db.ref(`sessions/${code}`).once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    db.ref(`sessions/${code}/lastAccessed`).set(firebase.database.ServerValue.TIMESTAMP);
+                    
+                    currentSessionId = code;
+                    localStorage.setItem('clipShareSession', currentSessionId);
+                    updateUI();
+                    document.getElementById('codeModal').style.display = 'none';
+                    showNotification("Joined session successfully!");
+                    
+                    // Setup auto-sync if enabled
+                    if (isAutoSyncEnabled) {
+                        setupAutoSyncListener();
+                    }
+                } else {
+                    showNotification("Invalid session code", "error");
+                }
+            });
+        }
+
+        // Check for existing session
+        function checkExistingSession() {
+            const savedSession = localStorage.getItem('clipShareSession');
+            if (savedSession) {
+                db.ref(`sessions/${savedSession}`).once('value').then(snapshot => {
+                    if (snapshot.exists()) {
+                        currentSessionId = savedSession;
+                        updateUI();
+                        showNotification("Reconnected to your session");
+                        
+                        // Setup auto-sync if enabled
+                        if (isAutoSyncEnabled) {
+                            setupAutoSyncListener();
+                        }
+                    } else {
+                        createNewSession();
+                    }
+                });
+            } else {
+                createNewSession();
+            }
+        }
+
+        // Setup auto-sync toggle and listeners
+        function setupAutoSync() {
+            // Set initial toggle state
+            document.getElementById('autoSyncToggle').checked = isAutoSyncEnabled;
+            updateSyncStatusUI();
+            
+            // Add event listener for toggle
+            document.getElementById('autoSyncToggle').addEventListener('change', function() {
+                isAutoSyncEnabled = this.checked;
+                localStorage.setItem('clipShareAutoSync', isAutoSyncEnabled);
+                updateSyncStatusUI();
+                
+                if (isAutoSyncEnabled && currentSessionId) {
+                    setupAutoSyncListener();
+                    showNotification("Auto-sync enabled! Changes will be synced automatically.");
+                } else {
+                    stopAutoSyncListener();
+                    showNotification("Auto-sync disabled. Changes will only sync when you click Send/Receive.");
+                }
+            });
+        }
+        
+        // Update sync status UI
+        function updateSyncStatusUI() {
+            const syncStatus = document.getElementById('syncStatus');
+            
+            if (isAutoSyncEnabled) {
+                syncStatus.className = 'sync-status active';
+                syncStatus.innerHTML = '<i class="fas fa-circle-notch"></i> Auto-sync is active';
+            } else {
+                syncStatus.className = 'sync-status inactive';
+                syncStatus.innerHTML = '<i class="fas fa-pause-circle"></i> Auto-sync is off';
+            }
+        }
+        
+        // Setup real-time listener for auto-sync
+        function setupAutoSyncListener() {
+            if (!currentSessionId || !isAutoSyncEnabled) return;
+            
+            // Remove previous listener if exists
+            if (syncListener) {
+                syncListener();
+            }
+            
+            // Setup new listener
+            syncListener = db.ref(`sessions/${currentSessionId}/lastClip`).on('value', snapshot => {
+                const clipData = snapshot.val();
+                
+                if (!clipData) return;
+                
+                // Skip if this is our own clip
+                if (lastSentData && lastSentData.id === clipData.id) {
+                    return;
+                }
+                
+                // Skip if we've already processed this clip
+                if (lastClipData && lastClipData.id === clipData.id) {
+                    return;
+                }
+                
+                // Process the new clip
+                lastClipData = clipData;
+                const now = new Date();
+                document.getElementById('lastReceivedTime').textContent = `Received at: ${now.toLocaleTimeString()}`;
+                document.getElementById('lastReceivedContentTime').textContent = `Received at: ${now.toLocaleTimeString()}`;
+                
+                if (clipData.isImage) {
+                    document.getElementById('clipContent').textContent = '[Image received]';
+                    document.getElementById('imagePreview').src = clipData.content;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('imageCopyBtn').style.display = 'flex';
+                    
+                    // AUTO-COPY IMAGE WHEN RECEIVED
+                    try {
+                        const blob = fetch(clipData.content).then(r => r.blob()).then(blob => {
+                            navigator.clipboard.write([
+                                new ClipboardItem({ [blob.type]: blob })
+                            ]);
+                            showNotification('📋 Image auto-copied to clipboard!');
+                        });
+                    } catch (error) {
+                        console.error("Auto-copy failed:", error);
+                        showNotification('⚠️ Click the image to copy manually', 'warning');
+                    }
+                    
+                } else {
+                    document.getElementById('clipContent').textContent = clipData.content;
+                    document.getElementById('imagePreview').style.display = 'none';
+                    document.getElementById('imageCopyBtn').style.display = 'none';
+                    
+                    // AUTO-COPY TEXT WHEN RECEIVED
+                    try {
+                        navigator.clipboard.writeText(clipData.content);
+                        showNotification('📋 Text auto-copied to clipboard!');
+                    } catch (error) {
+                        console.error("Auto-copy failed:", error);
+                        showNotification('⚠️ Click text to copy manually', 'warning');
+                    }
+                }
+                
+                document.getElementById('receiveStatus').textContent = "Clip received via auto-sync!";
+                document.getElementById('receiveStatus').style.color = "var(--success)";
+                
+                // Pulse animation for received card
+                document.getElementById('receiveCard').classList.add('pulse');
+                setTimeout(() => {
+                    document.getElementById('receiveCard').classList.remove('pulse');
+                }, 2000);
+            });
+            
+            // Start clipboard monitoring if auto-sync is enabled
+            if (isAutoSyncEnabled) {
+                startClipboardMonitoring();
+            }
+        }
+        
+        // Stop auto-sync listener
+        function stopAutoSyncListener() {
+            if (syncListener) {
+                syncListener();
+                syncListener = null;
+            }
+            
+            // Stop clipboard monitoring
+            stopClipboardMonitoring();
+        }
+        
+        // Start monitoring clipboard for changes (for auto-send)
+        function startClipboardMonitoring() {
+            if (!isAutoSyncEnabled) return;
+            
+            // Check clipboard every 2 seconds
+            clipboardListener = setInterval(async () => {
+                try {
+                    // Skip if we don't have a session
+                    if (!currentSessionId) return;
+                    
+                    // Skip if we just sent something (to prevent loops)
+                    if (Date.now() - lastClipboardCheck < 2000) return;
+                    
+                    lastClipboardCheck = Date.now();
+                    
+                    // Check for image first
+                    let content = '';
+                    let isImage = false;
+                    
+                    if (navigator.clipboard.read) {
+                        try {
+                            const items = await navigator.clipboard.read();
+                            for (const item of items) {
+                                for (const type of item.types) {
+                                    if (type.startsWith('image/')) {
+                                        const blob = await item.getType(type);
+                                        const newContent = await blobToBase64(blob);
+                                        
+                                        // Skip if same as last image
+                                        if (newContent === lastClipboardImage) {
+                                            return;
+                                        }
+                                        
+                                        content = newContent;
+                                        isImage = true;
+                                        lastClipboardImage = newContent;
+                                        break;
+                                    }
+                                }
+                                if (isImage) break;
+                            }
+                        } catch (error) {
+                            // No clipboard permissions or no image
+                        }
+                    }
+                    
+                    // If no image, check for text
+                    if (!isImage) {
+                        try {
+                            const newContent = await navigator.clipboard.readText();
+                            
+                            // Skip if empty or same as last text
+                            if (!newContent || newContent === lastClipboardContent) {
+                                return;
+                            }
+                            
+                            content = newContent;
+                            lastClipboardContent = newContent;
+                        } catch (error) {
+                            // No clipboard permissions
+                            return;
+                        }
+                    }
+                    
+                    // If we have new content, send it
+                    if (content) {
+                        const clipId = Date.now().toString();
+                        const now = new Date();
+                        
+                        await db.ref(`sessions/${currentSessionId}/lastClip`).set({
+                            id: clipId,
+                            content: content,
+                            isImage: isImage,
+                            timestamp: firebase.database.ServerValue.TIMESTAMP,
+                            sender: generateDeviceId()
+                        });
+                        
+                        db.ref(`sessions/${currentSessionId}/lastAccessed`).set(firebase.database.ServerValue.TIMESTAMP);
+                        
+                        lastSentData = { id: clipId, content, isImage };
+                        updateLastSentUI();
+                        
+                        document.getElementById('lastSentTime').textContent = `Sent at: ${now.toLocaleTimeString()}`;
+                        document.getElementById('lastSentContentTime').textContent = `Sent at: ${now.toLocaleTimeString()}`;
+                        
+                        // Pulse animation for sent card
+                        document.getElementById('sendCard').classList.add('pulse');
+                        setTimeout(() => {
+                            document.getElementById('sendCard').classList.remove('pulse');
+                        }, 2000);
+                    }
+                } catch (error) {
+                    console.error("Clipboard monitoring error:", error);
+                }
+            }, 2000); // Check every 2 seconds
+        }
+        
+        // Stop monitoring clipboard
+        function stopClipboardMonitoring() {
+            if (clipboardListener) {
+                clearInterval(clipboardListener);
+                clipboardListener = null;
+            }
+        }
+
+        // Send clipboard content - only when user clicks
+        async function sendClip() {
+            if (!currentSessionId) {
+                showNotification("No active session", "error");
+                return;
+            }
+
+            try {
+                let content = '';
+                let isImage = false;
+                
+                // Request clipboard permission only when needed
+                if (navigator.clipboard.read) {
+                    try {
+                        const items = await navigator.clipboard.read();
+                        for (const item of items) {
+                            for (const type of item.types) {
+                                if (type.startsWith('image/')) {
+                                    const blob = await item.getType(type);
+                                    content = await blobToBase64(blob);
+                                    isImage = true;
+                                    break;
+                                }
+                            }
+                            if (isImage) break;
+                        }
+                    } catch (error) {
+                        showNotification('❌ Please grant clipboard permissions to send', 'error');
+                        return;
+                    }
+                }
+                
+                // If no image, try text
+                if (!isImage) {
+                    try {
+                        content = await navigator.clipboard.readText();
+                    } catch (error) {
+                        showNotification('❌ Please grant clipboard permissions to send', 'error');
+                        return;
+                    }
+                }
+                
+                if (!content) {
+                    showNotification('Clipboard is empty or content not supported', 'error');
+                    return;
+                }
+                
+                const clipId = Date.now().toString();
+                const now = new Date();
+                
+                await db.ref(`sessions/${currentSessionId}/lastClip`).set({
+                    id: clipId,
+                    content: content,
+                    isImage: isImage,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    sender: generateDeviceId()
+                });
+                
+                db.ref(`sessions/${currentSessionId}/lastAccessed`).set(firebase.database.ServerValue.TIMESTAMP);
+                
+                lastSentData = { id: clipId, content, isImage };
+                updateLastSentUI();
+                
+                document.getElementById('lastSentTime').textContent = `Sent at: ${now.toLocaleTimeString()}`;
+                document.getElementById('lastSentContentTime').textContent = `Sent at: ${now.toLocaleTimeString()}`;
+                
+                document.getElementById('receiveCard').classList.add('pulse');
+                setTimeout(() => {
+                    document.getElementById('receiveCard').classList.remove('pulse');
+                }, 2000);
+                
+                showNotification('📤 Clip sent successfully!');
+            } catch (error) {
+                console.error(error);
+                showNotification('❌ Failed to send clip', 'error');
+            }
+        }
+
+        // Receive clipboard content with auto-copy
+        async function receiveClip() {
+            if (!currentSessionId) {
+                showNotification("No active session", "error");
+                return;
+            }
+
+            try {
+                const snapshot = await db.ref(`sessions/${currentSessionId}/lastClip`).once('value');
+                const clipData = snapshot.val();
+                
+                if (!clipData) {
+                    document.getElementById('receiveStatus').textContent = "No clips available";
+                    showNotification("No clips found in this session", "warning");
+                    return;
+                }
+
+                if (lastClipData && lastClipData.id === clipData.id) {
+                    document.getElementById('receiveStatus').textContent = "No new clips available";
+                    return;
+                }
+                
+                lastClipData = clipData;
+                const now = new Date();
+                document.getElementById('lastReceivedTime').textContent = `Received at: ${now.toLocaleTimeString()}`;
+                document.getElementById('lastReceivedContentTime').textContent = `Received at: ${now.toLocaleTimeString()}`;
+                
+                if (clipData.isImage) {
+                    document.getElementById('clipContent').textContent = '[Image received]';
+                    document.getElementById('imagePreview').src = clipData.content;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('imageCopyBtn').style.display = 'flex';
+                    
+                    // AUTO-COPY IMAGE WHEN RECEIVED
+                    try {
+                        const blob = await fetch(clipData.content).then(r => r.blob());
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ [blob.type]: blob })
+                        ]);
+                        showNotification('📋 Image auto-copied to clipboard!');
+                    } catch (error) {
+                        console.error("Auto-copy failed:", error);
+                        showNotification('⚠️ Click the image to copy manually', 'warning');
+                    }
+                    
+                } else {
+                    document.getElementById('clipContent').textContent = clipData.content;
+                    document.getElementById('imagePreview').style.display = 'none';
+                    document.getElementById('imageCopyBtn').style.display = 'none';
+                    
+                    // AUTO-COPY TEXT WHEN RECEIVED
+                    try {
+                        await navigator.clipboard.writeText(clipData.content);
+                        showNotification('📋 Text auto-copied to clipboard!');
+                    } catch (error) {
+                        console.error("Auto-copy failed:", error);
+                        showNotification('⚠️ Click text to copy manually', 'warning');
+                    }
+                }
+                
+                document.getElementById('receiveStatus').textContent = "Clip received!";
+                document.getElementById('receiveStatus').style.color = "var(--success)";
+                
+                document.getElementById('receiveCard').style.transform = "scale(0.98)";
+                setTimeout(() => {
+                    document.getElementById('receiveCard').style.transform = "";
+                }, 200);
+                
+            } catch (error) {
+                console.error(error);
+                document.getElementById('receiveStatus').textContent = "Error receiving clip";
+                document.getElementById('receiveStatus').style.color = "var(--danger)";
+                showNotification('❌ Failed to receive clip', 'error');
+            }
+        }
+
+        // Manual copy function (for fallback)
+        async function copyReceivedContent() {
+            if (!lastClipData) {
+                showNotification("No content to copy", "warning");
+                return;
+            }
+
+            try {
+                if (lastClipData.isImage) {
+                    if (navigator.clipboard.write) {
+                        const blob = await fetch(lastClipData.content).then(r => r.blob());
+                        await navigator.clipboard.write([
+                            new ClipboardItem({
+                                [blob.type]: blob
+                            })
+                        ]);
+                        showNotification('📋 Image copied to clipboard!');
+                    }
+                } else {
+                    await navigator.clipboard.writeText(lastClipData.content);
+                    showNotification('📋 Text copied to clipboard!');
+                }
+            } catch (error) {
+                console.error(error);
+                showNotification('❌ Failed to copy to clipboard. Please grant permissions.', 'error');
+            }
+        }
+
+        // Update last sent UI
+        function updateLastSentUI() {
+            if (!lastSentData) return;
+            
+            if (lastSentData.isImage) {
+                document.getElementById('sentContent').textContent = '[Image sent]';
+                document.getElementById('sentImagePreview').src = lastSentData.content;
+                document.getElementById('sentImagePreview').style.display = 'block';
+            } else {
+                document.getElementById('sentContent').textContent = lastSentData.content;
+                document.getElementById('sentImagePreview').style.display = 'none';
+            }
+        }
+
+        // Start new session with confirmation
+        function confirmNewSession() {
+            document.getElementById('newSessionModal').style.display = 'flex';
+        }
+
+        // Custom code creation
+        document.getElementById('useCustomCode').addEventListener('change', function(e) {
+            const container = document.getElementById('customCodeContainer');
+            const advancedOptions = document.getElementById('advancedOptions');
+            
+            container.style.display = e.target.checked ? 'block' : 'none';
+            advancedOptions.style.display = 'none';
+            document.getElementById('codeExistsError').style.display = 'none';
+            
+            // Reset to default 8-digit numeric code
+            document.getElementById('customCodeInput').value = '';
+            document.getElementById('customCodeInput').placeholder = "Enter 8-digit code";
+            document.getElementById('customCodeInput').maxLength = 8;
+            document.getElementById('customCodeInput').pattern = "\\d{8}";
+            document.getElementById('includeSymbols').checked = false;
+        });
+
+        // Toggle advanced options
+        document.getElementById('includeSymbols').addEventListener('change', function(e) {
+            const input = document.getElementById('customCodeInput');
+            input.value = ''; // Clear current input
+            
+            if (e.target.checked) {
+                // Allow letters/symbols (8-32 chars)
+                input.placeholder = "Enter code (8-32 chars)";
+                input.maxLength = 32;
+                input.removeAttribute('pattern');
+                input.removeAttribute('inputmode');
+            } else {
+                // Restrict to numbers only (8 digits)
+                input.placeholder = "Enter 8-digit code";
+                input.maxLength = 8;
+                input.pattern = "\\d{8}";
+                input.setAttribute('inputmode', 'numeric');
+            }
+        });
+
+        // Input validation for custom code
+        document.getElementById('customCodeInput').addEventListener('input', function(e) {
+            const includeSymbols = document.getElementById('includeSymbols').checked;
+            
+            if (!includeSymbols) {
+                // Only allow numbers
+                e.target.value = e.target.value.replace(/\D/g, '');
+                if (e.target.value.length > 8) {
+                    e.target.value = e.target.value.slice(0, 8);
+                }
+            }
+            // For includeSymbols=true, no restrictions beyond length (handled by maxLength)
+            
+            document.getElementById('codeExistsError').style.display = 'none';
+        });
+
+        async function startNewSession() {
+            const useCustomCode = document.getElementById('useCustomCode').checked;
+            const includeSymbols = document.getElementById('includeSymbols').checked;
+            let customCode = document.getElementById('customCodeInput').value;
+            
+            if (useCustomCode) {
+                // Validate custom code
+                if (includeSymbols) {
+                    if (!customCode || customCode.length < 8) {
+                        showNotification("Code must be at least 8 characters", "error");
+                        return;
+                    }
+                } else {
+                    if (!customCode || customCode.length !== 8 || !/^\d+$/.test(customCode)) {
+                        showNotification("Please enter a valid 8-digit code", "error");
+                        return;
+                    }
+                }
+                
+                // Check if code already exists
+                const snapshot = await db.ref(`sessions/${customCode}`).once('value');
+                if (snapshot.exists()) {
+                    document.getElementById('codeExistsError').style.display = 'block';
+                    return;
+                }
+                
+                currentSessionId = customCode;
+            } else {
+                currentSessionId = includeSymbols ? generateComplexCode(16) : generateSessionCode();
+            }
+            
+            // Clear previous session data if exists
+            if (currentSessionId) {
+                try {
+                    await db.ref(`sessions/${currentSessionId}/lastClip`).remove();
+                    await db.ref(`sessions/${currentSessionId}/chat`).remove();
+                } catch (e) {
+                    console.log("Couldn't delete previous session data:", e);
+                }
+            }
+            
+            // Create new session
+            localStorage.setItem('clipShareSession', currentSessionId);
+            await db.ref(`sessions/${currentSessionId}`).set({
+                expiresAt: Date.now() + 24 * 60 * 60 * 1000,
+                created: firebase.database.ServerValue.TIMESTAMP,
+                lastAccessed: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            document.getElementById('newSessionModal').style.display = 'none';
+            updateUI();
+            showNotification(`New session created! Code: ${currentSessionId}`);
+            
+            // Setup auto-sync if enabled
+            if (isAutoSyncEnabled) {
+                setupAutoSyncListener();
+            }
+            
+            // Reset custom code UI
+            document.getElementById('useCustomCode').checked = false;
+            document.getElementById('customCodeContainer').style.display = 'none';
+            document.getElementById('advancedOptions').style.display = 'none';
+            document.getElementById('customCodeInput').value = '';
+            document.getElementById('includeSymbols').checked = false;
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        function generateDeviceId() {
+            let deviceId = localStorage.getItem('clipShareDeviceId');
+            if (!deviceId) {
+                deviceId = 'device-' + Math.random().toString(36).substr(2, 8);
+                localStorage.setItem('clipShareDeviceId', deviceId);
+            }
+            return deviceId;
+        }
+
+        function updateUI() {
+            document.getElementById('sessionCode').textContent = currentSessionId;
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.innerHTML = type === 'success' ? 
+                `<i class="fas fa-check-circle"></i> ${message}` :
+                `<i class="fas fa-exclamation-circle"></i> ${message}`;
+                
+            notification.className = `notification ${type} show`;
+            setTimeout(() => notification.className = 'notification', 3000);
+        }
+
+        // Chat Functions
+        function initChat() {
+            // Load existing messages if we have a session
+            if (currentSessionId) {
+                loadChatMessages();
+            }
+            return true;
+        }
+
+        function showUsernameModal() {
+            document.getElementById('usernameModal').style.display = 'flex';
+            document.getElementById('usernameInput').focus();
+        }
+
+        function saveUsername() {
+            const username = document.getElementById('usernameInput').value.trim();
+            if (!username) {
+                showNotification("Please enter a username", "error");
+                return;
+            }
+            
+            chatUsername = username;
+            localStorage.setItem('clipShareChatUsername', username);
+            document.getElementById('usernameModal').style.display = 'none';
+            
+            // Now that we have a username, initialize the chat and open it
+            if (initChat()) {
+                openChat();
+            }
+        }
+
+        function setupChatListeners() {
+            // Chat toggle button
+            document.getElementById('chatToggle').addEventListener('click', function() {
+                // Check if we have a username
+                if (!chatUsername) {
+                    showUsernameModal();
+                    return;
+                }
+                
+                // Initialize chat if not already done
+                if (!chatMessagesRef) {
+                    initChat();
+                }
+                
+                toggleChat();
+            });
+            
+            // Close chat button
+            document.getElementById('closeChatBtn').addEventListener('click', closeChat);
+            
+            // Expand chat button
+            document.getElementById('expandChatBtn').addEventListener('click', expandChat);
+            
+            // Minimize chat button
+            document.getElementById('minimizeChatBtn').addEventListener('click', minimizeChat);
+            
+            // Send message button
+            document.getElementById('chatSendBtn').addEventListener('click', sendChatMessage);
+            
+            // Send message on Enter key (but allow Shift+Enter for new lines)
+            document.getElementById('chatInput').addEventListener('keydown', (e) => {
+                // Check if we're on mobile
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                
+                if (e.key === 'Enter') {
+                    if (isMobile || !e.shiftKey) {
+                        e.preventDefault();
+                        sendChatMessage();
+                    }
+                }
+            });
+            
+            // Typing indicator
+            document.getElementById('chatInput').addEventListener('input', function() {
+                if (!isTyping) {
+                    isTyping = true;
+                    db.ref(`sessions/${currentSessionId}/typing/${generateDeviceId()}`).set({
+                        username: chatUsername,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    });
+                }
+                
+                // Reset typing indicator after 3 seconds of inactivity
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => {
+                    isTyping = false;
+                    db.ref(`sessions/${currentSessionId}/typing/${generateDeviceId()}`).remove();
+                }, 3000);
+                
+                // Auto-resize textarea
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+            
+            // Save username button
+            document.getElementById('saveUsernameBtn').addEventListener('click', saveUsername);
+            
+            // Close username modal button
+            document.getElementById('closeUsernameModal').addEventListener('click', function() {
+                document.getElementById('usernameModal').style.display = 'none';
+            });
+            
+            // Emoji picker button
+            document.getElementById('emojiToggleBtn').addEventListener('click', toggleEmojiPicker);
+            
+            // Lite mode toggle button
+            document.getElementById('liteModeBtn').addEventListener('click', toggleLiteMode);
+            
+            // Emoji picker selection
+            const picker = document.querySelector('emoji-picker');
+            picker.addEventListener('emoji-click', event => {
+                const input = document.getElementById('chatInput');
+                input.value += event.detail.unicode;
+                input.focus();
+            });
+            
+            // Drag and drop events
+            const chatContainer = document.getElementById('chatContainer');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                chatContainer.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            chatContainer.addEventListener('drop', handleDrop, false);
+            
+            // Confirmation modal buttons
+            document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteMessage);
+            document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
+                document.getElementById('confirmationModal').style.display = 'none';
+            });
+            
+            // Admin modal buttons
+            document.getElementById('confirmAdminBtn').addEventListener('click', confirmAdminAction);
+            document.getElementById('cancelAdminBtn').addEventListener('click', () => {
+                document.getElementById('adminModal').style.display = 'none';
+            });
+        }
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const text = dt.getData('text');
+            if (text) {
+                document.getElementById('chatInput').value = text;
+            }
+        }
+
+        function toggleEmojiPicker() {
+            const picker = document.getElementById('emojiPickerContainer');
+            picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleLiteMode() {
+            isLiteMode = !isLiteMode;
+            localStorage.setItem('clipShareLiteMode', isLiteMode);
+            document.getElementById('chatContainer').classList.toggle('lite-mode');
+            showNotification(`Lite mode ${isLiteMode ? 'enabled' : 'disabled'}`);
+        }
+
+        function toggleChat() {
+            if (isChatOpen) {
+                closeChat();
+            } else {
+                openChat();
+            }
+        }
+
+        function openChat() {
+            const chatContainer = document.getElementById('chatContainer');
+            const chatIcon = document.getElementById('chatToggle');
+            
+            chatContainer.classList.add('show');
+            chatIcon.style.display = 'none';
+            isChatOpen = true;
+            
+            // Reset unread count when chat is opened
+            unreadMessages = 0;
+            updateUnreadCount();
+            
+            // Scroll to bottom
+            setTimeout(() => {
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }
+
+        function closeChat() {
+            const chatContainer = document.getElementById('chatContainer');
+            const chatIcon = document.getElementById('chatToggle');
+            
+            chatContainer.classList.remove('show');
+            chatIcon.style.display = 'flex';
+            isChatOpen = false;
+        }
+
+        function expandChat() {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.classList.add('expanded');
+            document.getElementById('expandChatBtn').style.display = 'none';
+            document.getElementById('minimizeChatBtn').style.display = 'block';
+            
+            // Scroll to bottom
+            setTimeout(() => {
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 100);
+        }
+
+        function minimizeChat() {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.classList.remove('expanded');
+            document.getElementById('expandChatBtn').style.display = 'block';
+            document.getElementById('minimizeChatBtn').style.display = 'none';
+        }
+
+        function loadChatMessages() {
+            // Remove previous listener if it exists
+            if (chatMessagesListener) {
+                chatMessagesListener();
+            }
+            
+            chatMessagesRef = db.ref(`sessions/${currentSessionId}/chat`);
+            
+            // Clear existing messages
+            document.getElementById('chatMessages').innerHTML = '';
+            
+            // Set up listener for new messages
+            chatMessagesListener = chatMessagesRef.orderByChild('timestamp').on('child_added', (snapshot) => {
+                const message = snapshot.val();
+                addMessageToChat(message, snapshot.key);
+            });
+            
+            // Set up listener for typing indicators
+            db.ref(`sessions/${currentSessionId}/typing`).on('value', (snapshot) => {
+                const typingData = snapshot.val();
+                const typingIndicator = document.getElementById('typingIndicator');
+                
+                if (!typingData) {
+                    typingIndicator.textContent = '';
+                    return;
+                }
+                
+                const typingUsers = Object.values(typingData)
+                    .filter(user => user.username !== chatUsername)
+                    .map(user => user.username);
+                
+                if (typingUsers.length > 0) {
+                    if (typingUsers.length === 1) {
+                        typingIndicator.textContent = `${typingUsers[0]} is typing...`;
+                    } else if (typingUsers.length === 2) {
+                        typingIndicator.textContent = `${typingUsers[0]} and ${typingUsers[1]} are typing...`;
+                    } else {
+                        typingIndicator.textContent = `${typingUsers[0]} and others are typing...`;
+                    }
+                } else {
+                    typingIndicator.textContent = '';
+                }
+            });
+        }
+
+        function addMessageToChat(message, messageId) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const isCurrentUser = message.senderId === generateDeviceId();
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = `chat-message ${isCurrentUser ? 'sent' : 'received'}`;
+            
+            const deleteBtn = `<button class="message-delete" data-message-id="${messageId}" title="Delete message">
+                    <i class="fas fa-trash"></i>
+                </button>`;
+            
+            const copyBtn = `<button class="message-copy" data-message-text="${escapeHtml(message.text)}" title="Copy message">
+                    <i class="far fa-copy"></i>
+                </button>`;
+            
+            // Preserve line breaks by replacing them with <br> tags
+            const messageContent = message.text.replace(/\n/g, '<br>');
+            
+            messageElement.innerHTML = `
+                ${deleteBtn}
+                ${copyBtn}
+                <div class="message-text">${messageContent}</div>
+                <div class="message-meta">
+                    <span class="message-sender">${isCurrentUser ? 'You' : escapeHtml(message.sender)}</span>
+                    <span class="message-time">${formatTime(message.timestamp)}</span>
+                    ${isCurrentUser ? '<span class="message-status">✓✓</span>' : ''}
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageElement);
+            
+            // Scroll to bottom if chat is open
+            if (isChatOpen) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } else {
+                // Increment unread count if chat is closed
+                if (!isCurrentUser) {
+                    unreadMessages++;
+                    updateUnreadCount();
+                }
+            }
+            
+            // Add click handler for delete button
+            const deleteButton = messageElement.querySelector('.message-delete');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showDeleteConfirmation(messageId, isCurrentUser);
+                });
+            }
+            
+            // Add click handler for copy button
+            const copyButton = messageElement.querySelector('.message-copy');
+            if (copyButton) {
+                copyButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const text = e.target.closest('.message-copy').dataset.messageText;
+                    navigator.clipboard.writeText(text);
+                    showNotification('Message copied to clipboard!');
+                });
+            }
+        }
+
+        function showDeleteConfirmation(messageId, isCurrentUser) {
+            pendingMessageId = messageId;
+            
+            if (isCurrentUser) {
+                document.getElementById('confirmationMessage').textContent = "Are you sure you want to delete your message?";
+                document.getElementById('confirmationModal').style.display = 'flex';
+            } else {
+                document.getElementById('adminModal').style.display = 'flex';
+                document.getElementById('adminPasswordInput').focus();
+            }
+        }
+
+        function confirmAdminAction() {
+            const password = document.getElementById('adminPasswordInput').value;
+            
+            if (adminPasswords.includes(password)) {
+                // Save admin password for this session
+                localStorage.setItem('clipShareAdminPassword', password);
+                document.getElementById('adminModal').style.display = 'none';
+                deleteMessage(pendingMessageId);
+            } else {
+                showNotification("Invalid admin password", "error");
+            }
+            
+            document.getElementById('adminPasswordInput').value = '';
+        }
+
+        function confirmDeleteMessage() {
+            if (!pendingMessageId) return;
+            deleteMessage(pendingMessageId);
+        }
+
+        function deleteMessage(messageId) {
+            if (!currentSessionId || !messageId) return;
+            
+            db.ref(`sessions/${currentSessionId}/chat/${messageId}`).remove()
+                .then(() => {
+                    showNotification("Message deleted", "success");
+                    document.getElementById('confirmationModal').style.display = 'none';
+                })
+                .catch((error) => {
+                    console.error("Error deleting message:", error);
+                    showNotification("Failed to delete message", "error");
+                });
+        }
+
+        async function sendChatMessage() {
+            if (!currentSessionId || !chatUsername) return;
+            
+            const input = document.getElementById('chatInput');
+            const messageText = input.value.trim();
+            
+            if (!messageText) {
+                showNotification("Message cannot be empty", "error");
+                return;
+            }
+            
+            // Create message object
+            const message = {
+                text: messageText,
+                sender: chatUsername,
+                senderId: generateDeviceId(),
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            // Push message to Firebase
+            db.ref(`sessions/${currentSessionId}/chat`).push(message)
+                .then(() => {
+                    // Clear input
+                    input.value = '';
+                    input.style.height = 'auto';
+                    
+                    // Clear typing indicator
+                    isTyping = false;
+                    db.ref(`sessions/${currentSessionId}/typing/${generateDeviceId()}`).remove();
+                    
+                    // Scroll to bottom
+                    const messagesContainer = document.getElementById('chatMessages');
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                })
+                .catch((error) => {
+                    console.error("Error sending message:", error);
+                    showNotification("Failed to send message", "error");
+                });
+        }
+
+        function updateUnreadCount() {
+            const unreadCountElement = document.getElementById('unreadCount');
+            
+            if (unreadMessages > 0) {
+                unreadCountElement.textContent = unreadMessages > 9 ? '9+' : unreadMessages;
+                unreadCountElement.style.display = 'flex';
+            } else {
+                unreadCountElement.style.display = 'none';
+            }
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Event Listeners
+        document.getElementById('sendClip').addEventListener('click', sendClip);
+        document.getElementById('receiveClipBtn').addEventListener('click', receiveClip);
+        document.getElementById('copySession').addEventListener('click', () => {
+            navigator.clipboard.writeText(currentSessionId);
+            showNotification('📋 Session code copied!');
+        });
+        
+        // Manual copy fallbacks
+        document.getElementById('clipContent').addEventListener('click', copyReceivedContent);
+        document.getElementById('imagePreview').addEventListener('click', copyReceivedContent);
+        document.getElementById('imageCopyBtn').addEventListener('click', copyReceivedContent);
+        
+        // Card click handlers
+        document.getElementById('sendCard').addEventListener('click', (e) => {
+            if (e.target.closest('button') === null) {
+                document.getElementById('sendClip').click();
+            }
+        });
+        
+        document.getElementById('receiveCard').addEventListener('click', (e) => {
+            if (e.target.closest('button') === null) {
+                document.getElementById('receiveClipBtn').click();
+            }
+        });
+        
+        // Modal handlers
+        document.getElementById('haveCodeBtn').addEventListener('click', () => {
+            document.getElementById('codeModal').style.display = 'flex';
+            document.getElementById('sessionCodeInput').focus();
+        });
+        
+        document.getElementById('joinSessionBtn').addEventListener('click', () => {
+            const code = document.getElementById('sessionCodeInput').value;
+            joinSession(code);
+        });
+        
+        document.getElementById('cancelModalBtn').addEventListener('click', () => {
+            document.getElementById('codeModal').style.display = 'none';
+        });
+        
+        document.getElementById('newSessionBtn').addEventListener('click', confirmNewSession);
+        document.getElementById('confirmNewSessionBtn').addEventListener('click', startNewSession);
+        document.getElementById('cancelNewSessionBtn').addEventListener('click', () => {
+            document.getElementById('newSessionModal').style.display = 'none';
+        });
+        
+        // How it works modal
+        document.getElementById('howItWorksBtn').addEventListener('click', () => {
+            document.getElementById('howItWorksModal').style.display = 'flex';
+        });
+        
+        document.getElementById('closeHowItWorks').addEventListener('click', () => {
+            document.getElementById('howItWorksModal').style.display = 'none';
+        });
+        
+        // Input validation
+        document.getElementById('sessionCodeInput').addEventListener('input', (e) => {
+            // No restrictions on input for join modal
+            if (e.target.value.length > 32) {
+                e.target.value = e.target.value.slice(0, 32);
+            }
+        });
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+            
+            // Close emoji picker when clicking outside
+            if (!e.target.closest('#emojiPickerContainer') && !e.target.closest('#emojiToggleBtn')) {
+                document.getElementById('emojiPickerContainer').style.display = 'none';
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                document.getElementById('sendClip').click();
+            }
+            
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none';
+                });
+                
+                // Also minimize chat if expanded
+                if (document.getElementById('chatContainer').classList.contains('expanded')) {
+                    minimizeChat();
+                }
+                
+                // Close emoji picker
+                document.getElementById('emojiPickerContainer').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
